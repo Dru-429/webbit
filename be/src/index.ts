@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import express from "express";
 import { reactBasePrompt } from "./default/react.ts";
 import { nodeBasePrompt } from "./default/node.ts";
-import { BASE_PROMPT } from "./prompts.ts";
+import { BASE_PROMPT, getSystemPrompt } from "./prompts.ts";
 dotenv.config();
 
 const app = express();
@@ -49,6 +49,23 @@ app.post("/template", async (req, res) => {
 
   return;
 });
+
+app.post("/chat", async( req, res) => {
+  const message = req.body.message;
+
+  const response = await client.responses.create({
+    model: "gpt-6-luna",
+    input: message,
+    instructions: String(getSystemPrompt),
+  });
+
+  const resp = response.output_text;
+  console.log(resp); 
+
+  res.json({
+    response: resp,
+  })
+})
 
 app.listen(3001);
 
