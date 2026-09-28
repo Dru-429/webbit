@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import dotenv from "dotenv";
+import { getSystemPrompt } from "./prompts";
 dotenv.config();
 
 const client = new OpenAI();
@@ -10,10 +11,11 @@ async function main() {
     input: [
       {
         role: "user",
-        content: "Create a simple todo web app",
+        content: "",
       },
     ],
     stream: true,
+    instructions: String(getSystemPrompt),
   });
 
   for await (const event of stream) {
