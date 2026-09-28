@@ -1,9 +1,9 @@
 import OpenAI from "openai";
 import dotenv from "dotenv";
-import { BASE_PROMPT, getSystemPrompt } from "./prompts";
 import express from "express";
-import { reactBasePrompt } from "./default/react";
-import { nodeBasePrompt } from "./default/node";
+import { reactBasePrompt } from "./default/react.ts";
+import { nodeBasePrompt } from "./default/node.ts";
+import { BASE_PROMPT } from "./prompts.ts";
 dotenv.config();
 
 const app = express();
@@ -52,22 +52,22 @@ app.post("/template", async (req, res) => {
 
 app.listen(3001);
 
-async function main() {
-  const stream = await client.responses.create({
-    model: "gpt-6-luna",
-    input: [
-      {
-        role: "user",
-        content: "",
-      },
-    ],
-    stream: true,
-    instructions: String(getSystemPrompt),
-  });
+// async function main() {
+//   const stream = await client.responses.create({
+//     model: "gpt-6-luna",
+//     input: [
+//       {
+//         role: "user",
+//         content: "",
+//       },
+//     ],
+//     stream: true,
+//     instructions: String(getSystemPrompt),
+//   });
 
-  for await (const event of stream) {
-    console.log(event);
-  }
-}
+//   for await (const event of stream) {
+//     console.log(event);
+//   }
+// }
 
-main();
+// main();
