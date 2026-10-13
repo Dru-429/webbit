@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import dotenv from "dotenv";
 import express from "express";
+import cors from "cors";
 import { reactBasePrompt } from "./default/react.ts";
 import { nodeBasePrompt } from "./default/node.ts";
 import { BASE_PROMPT, getSystemPrompt } from "./prompts.ts";
@@ -9,6 +10,7 @@ dotenv.config();
 const app = express();
 const client = new OpenAI();
 
+app.use(cors());
 app.use(express.json());
 
 app.post("/template", async (req, res) => {
@@ -56,16 +58,16 @@ app.post("/chat", async( req, res) => {
   const response = await client.responses.create({
     model: "gpt-6-luna",
     input: message,
-    instructions: String(getSystemPrompt),
+    instructions: getSystemPrompt(),
   });
 
   const resp = response.output_text;
-  console.log(resp); 
+  console.log(resp);
 
   res.json({
-    response: resp, 
-  })
-})
+    response: resp,
+  });
+});
 
 app.listen(3001);
 
