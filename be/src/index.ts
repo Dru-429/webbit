@@ -63,7 +63,7 @@ app.post("/chat", async( req, res) => {
   console.log(resp); 
 
   res.json({
-    response: resp,
+    response: resp, 
   })
 })
 
