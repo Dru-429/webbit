@@ -1,26 +1,20 @@
+import axios from 'axios'
 import type { ChatResponse, TemplateResponse } from '../types'
 
-const BASE = '/api'
+const api = axios.create({
+  baseURL: '/api',
+  headers: { 'Content-Type': 'application/json'}
+})
 
 async function request<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-
-  if (!res.ok) {
-    let message = `Request failed (${res.status})`
-    try {
-      const data = (await res.json()) as { message?: string }
-      if (data.message) message = data.message
-    } catch {
-      /* ignore */
-    }
-    throw new Error(message)
+  try {
+    const { data } = await api.post<T>(path, body);
+    return data;
+    
+  } catch (error) {
+    console.error(error);
+    throw error
   }
-
-  return res.json() as Promise<T>
 }
 
 export function fetchTemplate(prompt: string) {
