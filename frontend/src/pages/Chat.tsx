@@ -12,13 +12,6 @@ import { firstFilePath } from '../lib/fileTree'
 import { loadSession } from '../lib/session'
 import type { ChatMessage, FileMap, WorkspaceView } from '../types'
 
-const FOLLOW_UPS = [
-  'Add a dark mode toggle',
-  'Improve the landing hero',
-  'Add a README',
-  'Polish the typography',
-]
-
 function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
@@ -65,7 +58,6 @@ export function Chat() {
             ? [...history, userText.trim()].join('\n\n')
             : userText.trim()
 
-        // After first turn, keep conversation lighter (user edits only)
         templatePrompts.current = []
 
         const { response } = await sendChat(payload)
@@ -96,7 +88,6 @@ export function Chat() {
     [applyFiles, busy],
   )
 
-  // Seed files from template uiPrompts + kick off first generation
   useEffect(() => {
     if (bootstrapped.current) return
     bootstrapped.current = true
@@ -156,32 +147,52 @@ export function Chat() {
   }
 
   return (
-    <div className="chat-page">
-      <aside className="chat-side">
-        <header className="chat-side-header">
-          <Link to="/">Webbit</Link>
-          <span style={{ fontSize: 12, color: 'var(--chat-muted)' }}>
-            <span className="status-dot" /> connected
+    <div className="grid h-svh grid-cols-1 overflow-hidden bg-chat-bg text-chat-text max-[900px]:grid-rows-[45%_55%] min-[901px]:grid-cols-[minmax(320px,42%)_1fr]">
+      <aside className="flex min-h-0 flex-col border-r border-chat-border bg-chat-bg">
+        <header className="flex shrink-0 items-center justify-between border-b border-chat-border px-4 py-3.5">
+          <Link
+            to="/"
+            className="text-sm font-semibold tracking-tight text-chat-text no-underline"
+          >
+            Webbit
+          </Link>
+          <span className="inline-flex items-center gap-1.5 text-xs text-chat-muted">
+            <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+            connected
           </span>
         </header>
 
-        <div className="chat-messages" ref={scrollRef}>
+        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-5" ref={scrollRef}>
           {messages.map((msg) =>
             msg.role === 'user' ? (
-              <div key={msg.id} className="msg-user">
+              <div
+                key={msg.id}
+                className="max-w-[85%] self-end rounded-[16px_16px_4px_16px] bg-chat-bubble px-3.5 py-2.5 text-sm leading-normal whitespace-pre-wrap"
+              >
                 {msg.content}
               </div>
             ) : (
-              <div key={msg.id} className="msg-assistant">
+              <div
+                key={msg.id}
+                className="self-stretch text-sm leading-relaxed whitespace-pre-wrap text-chat-text/90"
+              >
                 {msg.content}
                 {msg.title && (
-                  <div className="msg-card">
-                    <div className="msg-card-title">{msg.title}</div>
-                    <div className="msg-card-actions">
-                      <button type="button" onClick={() => setView('code')}>
+                  <div className="mt-2 rounded-xl border border-chat-border bg-chat-surface px-3.5 py-3">
+                    <div className="mb-1.5 text-sm font-semibold">{msg.title}</div>
+                    <div className="mt-2.5 flex gap-2">
+                      <button
+                        type="button"
+                        className="cursor-pointer rounded-md border border-chat-border bg-chat-elevated px-3 py-1.5 text-[13px] text-chat-text"
+                        onClick={() => setView('code')}
+                      >
                         Details
                       </button>
-                      <button type="button" onClick={() => setView('preview')}>
+                      <button
+                        type="button"
+                        className="cursor-pointer rounded-md border border-chat-border bg-chat-elevated px-3 py-1.5 text-[13px] text-chat-text"
+                        onClick={() => setView('preview')}
+                      >
                         Preview
                       </button>
                     </div>
@@ -192,29 +203,20 @@ export function Chat() {
           )}
 
           {busy && (
-            <div className="msg-assistant" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <span className="spinner" style={{ borderColor: 'rgba(255,255,255,0.2)', borderTopColor: '#fff' }} />
+            <div className="flex items-center gap-2 self-stretch text-sm text-chat-text/90">
+              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
               Thinking…
             </div>
           )}
 
           {error && (
-            <div className="msg-assistant" style={{ color: '#fca5a5' }}>
-              {error}
-            </div>
+            <div className="self-stretch text-sm text-red-300">{error}</div>
           )}
         </div>
 
-        <div className="chat-composer">
-          <div className="chat-suggestions">
-            {FOLLOW_UPS.map((s) => (
-              <button key={s} type="button" onClick={() => submit(s)} disabled={busy}>
-                {s}
-              </button>
-            ))}
-          </div>
+        <div className="shrink-0 border-t border-chat-border bg-chat-bg px-4 pt-3 pb-4">
           <form
-            className="composer-row"
+            className="flex items-end gap-2 rounded-xl border border-chat-border bg-chat-surface px-3 py-2.5"
             onSubmit={(e) => {
               e.preventDefault()
               submit(input)
@@ -226,6 +228,7 @@ export function Chat() {
               placeholder="Ask Webbit…"
               rows={2}
               disabled={busy}
+              className="max-h-[140px] min-h-11 flex-1 resize-none border-none bg-transparent text-sm leading-snug text-chat-text outline-none placeholder:text-chat-muted disabled:opacity-60"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
@@ -233,7 +236,11 @@ export function Chat() {
                 }
               }}
             />
-            <button type="submit" className="btn btn-primary" disabled={busy || !input.trim()}>
+            <button
+              type="submit"
+              className="btn-inset focus-soft inline-flex cursor-pointer items-center justify-center rounded-full border-none bg-charcoal px-4 py-2 text-sm text-off-white transition-opacity active:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={busy || !input.trim()}
+            >
               Build
             </button>
           </form>

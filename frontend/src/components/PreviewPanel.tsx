@@ -26,9 +26,9 @@ function buildPreviewHtml(files: FileMap): string | null {
     files['index.js'] ??
     ''
 
-  // For React scaffolds we can't run JSX in an iframe without a bundler.
-  // Show a friendly static preview surface with the entry HTML + CSS when possible.
-  const hasReact = /react/i.test(app) || Object.keys(files).some((p) => p.endsWith('.tsx') || p.endsWith('.jsx'))
+  const hasReact =
+    /react/i.test(app) ||
+    Object.keys(files).some((p) => p.endsWith('.tsx') || p.endsWith('.jsx'))
 
   if (hasReact) {
     const snippet = app.slice(0, 400)
@@ -80,12 +80,8 @@ function buildPreviewHtml(files: FileMap): string | null {
 </html>`
   }
 
-  // Plain HTML project — inject CSS if present
   if (css && !/<link[^>]+stylesheet/i.test(htmlFile)) {
-    return htmlFile.replace(
-      '</head>',
-      `<style>${css}</style></head>`,
-    )
+    return htmlFile.replace('</head>', `<style>${css}</style></head>`)
   }
 
   return htmlFile
@@ -104,9 +100,9 @@ export function PreviewPanel({ files }: Props) {
 
   if (!srcDoc) {
     return (
-      <div className="preview-empty">
-        <h2>No preview yet</h2>
-        <p>
+      <div className="flex h-full flex-col items-center justify-center gap-2 bg-cream p-8 text-center text-muted">
+        <h2 className="m-0 text-xl font-normal text-charcoal">No preview yet</h2>
+        <p className="m-0 text-sm">
           {fileCount === 0
             ? 'Start a chat to generate project files.'
             : 'No index.html found in the generated files.'}
@@ -117,7 +113,7 @@ export function PreviewPanel({ files }: Props) {
 
   return (
     <iframe
-      className="preview-frame"
+      className="h-full w-full border-none bg-cream"
       title="Preview"
       sandbox="allow-scripts"
       srcDoc={srcDoc}

@@ -8,15 +8,29 @@ type Props = {
   onSelect: (path: string) => void
 }
 
+const EXT_BADGE: Record<string, string> = {
+  ts: 'bg-accent-blue',
+  tsx: 'bg-accent-blue',
+  js: 'bg-accent-blue',
+  jsx: 'bg-accent-blue',
+  json: 'bg-yellow-600',
+  css: 'bg-sky-500',
+  html: 'bg-orange-600',
+  md: 'bg-slate-500',
+}
+
 function extBadge(name: string) {
   const ext = name.split('.').pop()?.toLowerCase() ?? ''
-  if (['ts', 'tsx'].includes(ext)) return { label: 'TS', className: '' }
-  if (['js', 'jsx'].includes(ext)) return { label: 'JS', className: '' }
-  if (ext === 'json') return { label: 'JS', className: 'json' }
-  if (ext === 'css') return { label: 'CSS', className: 'css' }
-  if (ext === 'html') return { label: 'HTML', className: 'html' }
-  if (ext === 'md') return { label: 'MD', className: 'md' }
-  return { label: ext.slice(0, 3).toUpperCase() || 'F', className: '' }
+  if (['ts', 'tsx'].includes(ext)) return { label: 'TS', className: EXT_BADGE.ts }
+  if (['js', 'jsx'].includes(ext)) return { label: 'JS', className: EXT_BADGE.js }
+  if (ext === 'json') return { label: 'JS', className: EXT_BADGE.json }
+  if (ext === 'css') return { label: 'CSS', className: EXT_BADGE.css }
+  if (ext === 'html') return { label: 'HTML', className: EXT_BADGE.html }
+  if (ext === 'md') return { label: 'MD', className: EXT_BADGE.md }
+  return {
+    label: ext.slice(0, 3).toUpperCase() || 'F',
+    className: 'bg-accent-blue',
+  }
 }
 
 function TreeNode({
@@ -40,7 +54,7 @@ function TreeNode({
       <div>
         <button
           type="button"
-          className="tree-folder"
+          className="flex w-full cursor-pointer items-center gap-1.5 rounded-md border-none bg-transparent px-2 py-1.5 text-left text-[13px] text-chat-text/85 hover:bg-white/6"
           style={{ paddingLeft: 8 + depth * 10 }}
           onClick={() => toggle(node.path)}
         >
@@ -48,7 +62,7 @@ function TreeNode({
           <span>{node.name}</span>
         </button>
         {isOpen && (
-          <div className="tree-children">
+          <div className="ml-3 border-l border-white/6 pl-1">
             {(node.children ?? []).map((child) => (
               <TreeNode
                 key={child.path}
@@ -67,14 +81,21 @@ function TreeNode({
   }
 
   const badge = extBadge(node.name)
+  const active = activePath === node.path
   return (
     <button
       type="button"
-      className={`tree-file${activePath === node.path ? ' active' : ''}`}
+      className={`flex w-full cursor-pointer items-center gap-1.5 rounded-md border-none px-2 py-1.5 text-left text-[13px] text-chat-text/85 ${
+        active ? 'bg-white/6' : 'bg-transparent hover:bg-white/6'
+      }`}
       style={{ paddingLeft: 8 + depth * 10 }}
       onClick={() => onSelect(node.path)}
     >
-      <span className={`file-ext ${badge.className}`}>{badge.label}</span>
+      <span
+        className={`inline-flex h-3.5 w-[18px] shrink-0 items-center justify-center rounded-sm text-[8px] font-semibold tracking-tight text-white ${badge.className}`}
+      >
+        {badge.label}
+      </span>
       <span>{node.name}</span>
     </button>
   )
@@ -93,7 +114,6 @@ export function FileExplorer({ files, activePath, onSelect }: Props) {
       for (const n of tree) {
         if (n.type === 'folder') next.add(n.path)
       }
-      // Keep src expanded like the screenshot
       if (tree.some((n) => n.path === 'src')) next.add('src')
       return next
     })
@@ -109,9 +129,17 @@ export function FileExplorer({ files, activePath, onSelect }: Props) {
   }
 
   return (
-    <aside className="file-explorer">
-      <div className="file-search">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <aside className="flex min-h-0 flex-col border-r border-chat-border bg-chat-surface">
+      <div className="relative border-b border-chat-border p-3">
+        <svg
+          className="pointer-events-none absolute top-1/2 left-[22px] -translate-y-1/2 opacity-45"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <circle cx="11" cy="11" r="7" />
           <path d="M20 20l-3.5-3.5" />
         </svg>
@@ -120,14 +148,13 @@ export function FileExplorer({ files, activePath, onSelect }: Props) {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search code"
           aria-label="Search code"
+          className="w-full rounded-md border border-chat-border bg-code-bg py-2 pr-2.5 pl-8 text-[13px] text-chat-text outline-none focus:shadow-[0_0_0_2px_var(--color-ring)]"
         />
       </div>
 
-      <div className="file-tree">
+      <div className="flex-1 overflow-y-auto p-2 text-[13px]">
         {filtered.length === 0 ? (
-          <p style={{ color: 'var(--chat-muted)', padding: 8, margin: 0, fontSize: 13 }}>
-            No files yet
-          </p>
+          <p className="m-0 p-2 text-[13px] text-chat-muted">No files yet</p>
         ) : (
           filtered.map((node) => (
             <TreeNode
@@ -143,8 +170,12 @@ export function FileExplorer({ files, activePath, onSelect }: Props) {
         )}
       </div>
 
-      <div className="explorer-footer">
-        <button type="button" onClick={() => downloadCodebase(files)}>
+      <div className="border-t border-chat-border p-3">
+        <button
+          type="button"
+          onClick={() => downloadCodebase(files)}
+          className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-chat-border bg-chat-elevated px-3 py-2.5 text-[13px] text-chat-text"
+        >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 3v12" />
             <path d="M7 10l5 5 5-5" />
